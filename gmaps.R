@@ -5,6 +5,9 @@ police$age <- as.numeric(police$age)
 police$county_fp<- sprintf("%03d", police$county_fp)
 police$FIPS <- paste(police$state_fp,police$county_fp, sep='')
 police$state <- paste("US-",police$state,sep='')
+police$latlong <- paste(police$latitude,":",police$longitude,sep="")
+library(ggmap)
+register_google(key = "AIzaSyAlA5GxoE-7-xz_btnBi8y-9bU4Z50eZno", write = TRUE)
 
 
 states <- police %>% 
@@ -24,3 +27,10 @@ GeoStates <- gvisGeoChart(states, locationvar='state',
                          
 plot(GeoStates)
 
+
+
+
+G <- gvisGeoChart(eq, "loc", "Depth", "Magnitude",
+                  options=list(displayMode="Markers", 
+                               colorAxis="{colors:['purple', 'red', 'orange', 'grey']}",
+                               backgroundColor="lightblue"), chartid="EQ")
