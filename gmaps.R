@@ -28,9 +28,3 @@ GeoStates <- gvisGeoChart(states, locationvar='state',
 plot(GeoStates)
 
 
-
-
-G <- gvisGeoChart(eq, "loc", "Depth", "Magnitude",
-                  options=list(displayMode="Markers", 
-                               colorAxis="{colors:['purple', 'red', 'orange', 'grey']}",
-                               backgroundColor="lightblue"), chartid="EQ")
