@@ -1,6 +1,7 @@
 # History files
 .Rhistory
 .Rapp.history
+launch.R
 
 # Session Data files
 .RData

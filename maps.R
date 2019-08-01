@@ -1,15 +1,9 @@
 library(googleVis)
-library(dplyr)
-police <- read.csv("police_killings.csv")
-police$age <- as.numeric(police$age)
-police$county_fp<- sprintf("%03d", police$county_fp)
-police$FIPS <- paste(police$state_fp,police$county_fp, sep='')
-police$state <- paste("US-",police$state,sep='')
-police$latlong <- paste(police$latitude,":",police$longitude,sep="")
 library(ggmap)
-register_google(key = "AIzaSyAlA5GxoE-7-xz_btnBi8y-9bU4Z50eZno", write = TRUE)
+library(tidyverse)
+library(leaflet)
 
-
+#Killings by State  - Googgle Charts
 states <- police %>% 
           group_by(state) %>% 
           summarise(deaths = n())
@@ -28,3 +22,41 @@ GeoStates <- gvisGeoChart(states, locationvar='state',
 plot(GeoStates)
 
 
+
+# Leaflet maps
+pal <- colorFactor(
+  palette = "Set2",
+  domain = police$cause)
+
+label <- "label"
+
+
+
+
+#CIRCLES
+m <- leaflet(police) %>%
+  addTiles() %>%  # Add default OpenStreetMap map tiles
+  addCircleMarkers(lat=police$latitude,lng=police$longitude,
+                   color = ~pal(cause),
+                   stroke = FALSE,
+                   fillOpacity = 0.5,
+                   popup = ~label,
+                   popupOptions = labelOptions(noHide = T,
+                                               textsize = "15px")
+  )  %>%
+  addLegend("bottomright", pal = pal, values = ~cause,
+            title = "Cause of Death",
+            labFormat = labelFormat(),
+            opacity = 0.75
+  ) %>%
+  addProviderTiles(providers$CartoDB.Positron)
+
+m  # Print the map
+
+
+#HEATMAP
+m <- leaflet(police) %>%
+  addTiles() %>%  # Add default OpenStreetMap map tiles
+  addWebGLHeatmap(size=30,units='px')   %>% 
+  addProviderTiles(providers$CartoDB.Positron)
+m  # Print the map

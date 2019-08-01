@@ -1,7 +1,4 @@
 library(tidyverse)
-library(leaflet)
-library(googleVis)
-
 
 # POLICE DATA FRAME
 
@@ -23,7 +20,7 @@ police$day = sprintf("%02d", police$day)
 
 ##PREPROCESSING DATA 
 
-p_clean <- police %>% 
+police <- police %>% 
   mutate(race_maj = case_when(share_white >= 50.0 ~ "White", 
                               share_black >= 50.0 ~ "Black",
                               share_hispanic >= 50.0 ~ "Hispanic/Latino")) %>% 
@@ -60,40 +57,35 @@ p_clean <- police %>%
 ## COUNTY DATA FROM 
 county <- read.csv("names.csv",stringsAsFactors = FALSE, header = FALSE)
 
-cl_county <- county %>% 
+county <- county %>% 
   rename(FIPS = V1, County = V2, State = V3)
   
   
-cl_county$FIPS = as.numeric(cl_county$FIPS)
-cl_county$FIPS = sprintf("%06d", cl_county$FIPS)
+county$FIPS = as.numeric(county$FIPS)
+county$FIPS = sprintf("%06d", county$FIPS)
 
-fp<- merge(p_clean,cl_county, by= "FIPS", all.x=TRUE)
+police_final <- left_join(police, county, by = 'FIPS')
 
-colnames(fp)
 
 ## PIPING TO NEW CSV 
 
 
-final_police <- fp %>% 
+police_final <- police_final %>% 
   select(-c(pov_ratio.html.tooltip ,FIPS ,day ,tract_ce ,namelsad ,year,
-      state_fp ,geo_id ,month ,county_fp ,county_id,date)) %>% 
+      state_fp ,geo_id ,month ,county_fp ,county_id,date))  %>% 
   mutate(t_pop = as.numeric(t_pop), 
          nat_bucket = as.numeric(nat_bucket),
          t_house_income = as.numeric(t_house_income),
          t_person_income = as.numeric( t_person_income),
-         is_minority  = as.character(is_minority),
          county_income = as.numeric(county_income),
          county_bucket = as.numeric(county_bucket),
-         share_hispanic = as.numeric(share_hispanic),
-         
-         
-         
+         share_hispanic = as.numeric(share_hispanic)
          )
 
 
-sapply(final_police, class)
+sapply(police_final, class)
 
-write.csv(final_police,"police_final.csv", row.names = FALSE)
+saveRDS(police_final,"police_final.rds")
 
 
 
