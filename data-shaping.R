@@ -3,6 +3,11 @@ library(reshape2)
 
 # POLICE AND STATE DATA FRAME
 police <- read.csv("police_killings.csv",stringsAsFactors = FALSE)
+state_detail <- read.csv("state_detail.csv",stringsAsFactors = FALSE)
+
+
+police <- left_join(police,state_detail, by = c("state" = "State.Code"))
+
 
 
 #CONVERTING TYPES
@@ -86,14 +91,20 @@ police_final <- police_final %>%
 unique(police$raceethnicity)
 
 # STATE POPULTION DATA 
-state_race <- read.csv("state_rate.csv",stringsAsFactors = FALSE)
+state_race <- read.csv("race_per_state.csv",stringsAsFactors = FALSE)
 state_race <- state_race %>%  rename("Hispanic/Latino" = Hispanic.Latino, "Asian/Pacific Islander" = Asian.Pacific.Islander, "Native American" = Native.American)
 state_race <- melt(state_race, id.vars = "State", measure.vars = c("Hispanic/Latino", "White","Black", "Asian/Pacific Islander", "Native American"))
-
+view(state_race)
 
 state_race <- state_race %>% 
   arrange(State, variable) %>% 
   rename(raceethnicity = variable, percent_pop = value, state= State)
+
+
+state_race$raceethnicity = as.character(state_race$raceethnicity)
+
+
+
 
 
 # US POPULATION DATA 

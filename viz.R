@@ -72,23 +72,29 @@ race_bar
 # STATE RATE BAR CHART
 state_race <- readRDS("state_race.rds")
 
-View(state_race)
+state_agg <- police  %>% 
+  select(state) %>% 
+  group_by(state) %>% 
+  summarise(state_total = n())
 
-state_race_data <- police %>% 
-  select(state,raceethnicity) %>% 
+state_percent <- left_join(police,state_agg, by='state')
+
+View(state_percent)
+
+state_percent <- state_percent %>% 
+  select(state, raceethnicity, state_total) %>% 
   group_by(state,raceethnicity) %>% 
-  summarise(killings = n(), percent_race_killings = n()/police_total) %>% 
-  arrange(desc(killings))
-  
+  summarise(killings = n(), state_total= max(state_total), percent_state_k = n()/max(state_total))
 
-state_bar_total <- left_join(state_race_data,state_race,by= 
+  
+state_bar_total <- left_join(state_percent,state_race,by= 
                                c("state" = "state",
                                  "raceethnicity" = "raceethnicity"))
 
 state_bar_total <- state_bar_total %>% 
-  mutate(relative_percent = percent_race_killings/percent_pop)
+  mutate(relative_percent = percent_state_k/percent_pop)
+
 
 state_race_black <- state_bar_total %>% 
   filter(raceethnicity=="Black")
 
-colnames(state_race_black)
