@@ -1,8 +1,9 @@
 library(tidyverse)
+library(reshape2)
 
-# POLICE DATA FRAME
-
+# POLICE AND STATE DATA FRAME
 police <- read.csv("police_killings.csv",stringsAsFactors = FALSE)
+
 
 #CONVERTING TYPES
 police$state_fp <-as.numeric(police$state_fp)
@@ -18,7 +19,7 @@ police$share_black <- as.numeric(police$share_black)
 police$share_white <- as.numeric(police$share_white)
 police$day = sprintf("%02d", police$day)
 
-##PREPROCESSING DATA 
+##PREPROCESSING POLICE DATA 
 
 police <- police %>% 
   mutate(race_maj = case_when(share_white >= 50.0 ~ "White", 
@@ -36,7 +37,7 @@ police <- police %>%
                                  unemployment<25 ~unemployment)) %>% 
   mutate(juvenile = case_when(age<18 ~ "Juvenile",
                                age>=18~"Adult")) %>% 
-  mutate(date = paste(police$month,day,police$year,sep="/")) %>% 
+  mutate(date = paste(police$month,day,pol ice$year,sep="/")) %>% 
   mutate(date = as.Date(date,"%B/%d/%Y")) %>% 
   mutate(agency = str_extract(police$lawenforcementagency, "State|Sheriff|Marshals|and|County|Us Border Patrol|FBI|ATF|US Forest Service|Police Department|US Border Patrol|Highway Patrol")) %>% 
   mutate(agency =  ifelse(agency == "Police Department", "City Police",
@@ -54,7 +55,7 @@ police <- police %>%
 
 
 
-## COUNTY DATA FROM 
+## COUNTY DATA  
 county <- read.csv("names.csv",stringsAsFactors = FALSE, header = FALSE)
 
 county <- county %>% 
@@ -67,12 +68,11 @@ county$FIPS = sprintf("%06d", county$FIPS)
 police_final <- left_join(police, county, by = 'FIPS')
 
 
-## PIPING TO NEW CSV 
-
+## PIPING TO NEW RDS
 
 police_final <- police_final %>% 
   select(-c(pov_ratio.html.tooltip ,FIPS ,day ,tract_ce ,namelsad ,year,
-      state_fp ,geo_id ,month ,county_fp ,county_id,date))  %>% 
+            state_fp ,geo_id ,month ,county_fp ,county_id,date))  %>% 
   mutate(t_pop = as.numeric(t_pop), 
          nat_bucket = as.numeric(nat_bucket),
          t_house_income = as.numeric(t_house_income),
@@ -80,12 +80,42 @@ police_final <- police_final %>%
          county_income = as.numeric(county_income),
          county_bucket = as.numeric(county_bucket),
          share_hispanic = as.numeric(share_hispanic)
-         )
+  )
 
 
-sapply(police_final, class)
+unique(police$raceethnicity)
 
+# STATE POPULTION DATA 
+state_race <- read.csv("state_rate.csv",stringsAsFactors = FALSE)
+state_race <- state_race %>%  rename("Hispanic/Latino" = Hispanic.Latino, "Asian/Pacific Islander" = Asian.Pacific.Islander, "Native American" = Native.American)
+state_race <- melt(state_race, id.vars = "State", measure.vars = c("Hispanic/Latino", "White","Black", "Asian/Pacific Islander", "Native American"))
+
+
+state_race <- state_race %>% 
+  arrange(State, variable) %>% 
+  rename(raceethnicity = variable, percent_pop = value, state= State)
+
+
+# US POPULATION DATA 
+raceethnicity = c("White",
+         "Native American",
+         "Hispanic/Latino",
+         "Black",
+         "Asian/Pacific Islander")
+
+percent_pop = c(.7650,
+                .0130,
+                .1830,
+                .1340,
+                .0610)
+
+race_stats = data.frame(raceethnicity,percent_pop)
+
+
+#SAVING EVERYTHING FOR EXPORT
+saveRDS(race_stats,"race_stats.rds")
 saveRDS(police_final,"police_final.rds")
+saveRDS(state_race,"state_race.rds")
 
 
 

@@ -21,6 +21,24 @@ GeoStates <- gvisGeoChart(states, locationvar='state',
                          
 plot(GeoStates)
 
+#Killings by percent population /state/ black
+
+
+state_race_black <- state_race_black %>% 
+  mutate(relative_percent = relative_percent*100) %>% 
+  select(state, relative_percent)
+
+state_race_black
+
+
+GeoStates <- gvisGeoChart(state_race_black, locationvar='state',
+                          colorvar='relative_percent',
+                          options=list(region="US", 
+                                       displayMode="regions", 
+                                       resolution="provinces",
+                                       width=600, height=400))
+
+plot(GeoStates)
 
 
 # Leaflet maps
