@@ -2,93 +2,40 @@ library(tidyverse)
 library(reshape2)
 
 # POLICE AND STATE DATA FRAME
-police <- read.csv("police_killings.csv",stringsAsFactors = FALSE)
+police <- read.csv("police.csv",stringsAsFactors = FALSE)
 state_detail <- read.csv("state_detail.csv",stringsAsFactors = FALSE)
 
+View(police)
 
 police <- left_join(police,state_detail, by = c("state" = "State.Code"))
 
 
 
 #CONVERTING TYPES
-police$state_fp <-as.numeric(police$state_fp)
-police$county_fp <-  sprintf("%02d", police$county_fp)
-police$county_fp <-as.numeric(police$county_fp)
-police$county_fp<- sprintf("%03d", police$county_fp)
-police$FIPS <- paste(police$state_fp,police$county_fp, sep='')
-police$FIPS <- sprintf("%06d", as.numeric(police$FIPS))
 police$age <- as.numeric(police$age)
-police$pov <- as.numeric(police$pov)
-police$share_white <- as.numeric(police$share_white)
-police$share_black <- as.numeric(police$share_black)
-police$share_white <- as.numeric(police$share_white)
-police$day = sprintf("%02d", police$day)
 
 ##PREPROCESSING POLICE DATA 
 
 police <- police %>% 
-  mutate(race_maj = case_when(share_white >= 50.0 ~ "White", 
-                              share_black >= 50.0 ~ "Black",
-                              share_hispanic >= 50.0 ~ "Hispanic/Latino")) %>% 
-  mutate(race_maj = replace_na(race_maj,"Other")) %>% 
-  mutate(is_minority = if_else(raceethnicity!=race_maj, 1,0)) %>% 
-  mutate(pov_ratio = (pov/pop)*100) %>% 
-  mutate(pov_ratio = case_when(pov_ratio>= 25 ~ 25,
-                               pov_ratio<25 ~pov_ratio)) %>% 
-  mutate(pov_ratio=na_if(pov_ratio, Inf)) %>% 
-  mutate(pov_ratio.html.tooltip = pov_ratio) %>% 
-  mutate(unemployment = urate*100) %>% 
-  mutate(unemployment= case_when(unemployment>=25 ~ 25,
-                                 unemployment<25 ~unemployment)) %>% 
   mutate(juvenile = case_when(age<18 ~ "Juvenile",
                                age>=18~"Adult")) %>% 
-  mutate(date = paste(police$month,day,pol ice$year,sep="/")) %>% 
-  mutate(date = as.Date(date,"%B/%d/%Y")) %>% 
-  mutate(agency = str_extract(police$lawenforcementagency, "State|Sheriff|Marshals|and|County|Us Border Patrol|FBI|ATF|US Forest Service|Police Department|US Border Patrol|Highway Patrol")) %>% 
-  mutate(agency =  ifelse(agency == "Police Department", "City Police",
-                               ifelse(agency == "Sheriff", "Sheriff",
-                                      ifelse(agency == "Marshals", "Marshals",
-                                             ifelse(agency == "State", "State Police", 
-                                                    ifelse(agency == "Highway Patrol", 'Hightway Patrol',
-                                                           ifelse(agency == "FBI", "FBI",
-                                                                  ifelse(agency== "ATF","ATF", 
-                                                                         ifelse(agency ==  "and", "Multiple Agencies", "Other Law Enforcement"))))))))) %>% 
-  mutate(agency = replace_na(agency,"Unknown")) %>% 
-  mutate(armed = ifelse(agency =="No", "Unarmed",armed)) %>% 
-  rename("t_pop" = pop, t_person_income = p_income, t_house_income = h_income) 
+  mutate(date = as.Date(date,"%Y-%m-%d")) %>% 
+  mutate(armed = ifelse(armed =="No", "Unarmed",armed)) %>%
+  mutate(manner_of_death = str_to_title(manner_of_death),
+         armed = str_to_title(armed),
+         flee = str_to_title(flee),
+         threat_level = str_to_title(threat_level)) %>% 
+  mutate(gender =  ifelse(gender == "M", "Male","Female"),
+         race =  ifelse(race == "W", "White",
+                                          ifelse(race == "B", "Black",
+                                                 ifelse(race == "A", "Asian/Pacific Islander",
+                                                        ifelse(race == "O", "Other", 
+                                                               ifelse(race == "N", "Native American",
+                                                                      ifelse(race == "H", "Hispanic/Latino",
+                                                                             "Unknown"))))))) %>% 
+  mutate(year = substring(date,1,4))
 
 
-
-
-## COUNTY DATA  
-county <- read.csv("names.csv",stringsAsFactors = FALSE, header = FALSE)
-
-county <- county %>% 
-  rename(FIPS = V1, County = V2, State = V3)
-  
-  
-county$FIPS = as.numeric(county$FIPS)
-county$FIPS = sprintf("%06d", county$FIPS)
-
-police_final <- left_join(police, county, by = 'FIPS')
-
-
-## PIPING TO NEW RDS
-
-police_final <- police_final %>% 
-  select(-c(pov_ratio.html.tooltip ,FIPS ,day ,tract_ce ,namelsad ,year,
-            state_fp ,geo_id ,month ,county_fp ,county_id,date))  %>% 
-  mutate(t_pop = as.numeric(t_pop), 
-         nat_bucket = as.numeric(nat_bucket),
-         t_house_income = as.numeric(t_house_income),
-         t_person_income = as.numeric( t_person_income),
-         county_income = as.numeric(county_income),
-         county_bucket = as.numeric(county_bucket),
-         share_hispanic = as.numeric(share_hispanic)
-  )
-
-
-unique(police$raceethnicity)
 
 # STATE POPULTION DATA 
 state_race <- read.csv("race_per_state.csv",stringsAsFactors = FALSE)
@@ -102,8 +49,6 @@ state_race <- state_race %>%
 
 
 state_race$raceethnicity = as.character(state_race$raceethnicity)
-
-
 
 
 
@@ -123,7 +68,38 @@ percent_pop = c(.7650,
 race_stats = data.frame(raceethnicity,percent_pop)
 
 
+
+#CITY RACE DATA 
+
+
+city_race <- read.csv("city_race_clean.csv",stringsAsFactors = FALSE)
+
+city_race <- city_race %>%  
+  rename("Hispanic/Latino" = Hispanic, 
+         "Asian/Pacific Islander" = Asian.Pacific.Islander,
+         "Native American" = Native.American) %>% 
+  mutate(White = as.numeric(White),
+         Black = as.numeric(Black),
+         `Hispanic/Latino` = as.numeric(`Hispanic/Latino`),
+         `Native American` = as.numeric(`Native American`),
+         `Asian/Pacific Islander` = as.numeric(`Asian/Pacific Islander`)) %>% 
+  mutate(Majority = ifelse(White >= 50.0 , "White", 
+                              ifelse(Black >= 50.0 , "Black",
+                                ifelse(`Hispanic/Latino` >= 50.0 , "Hispanic/Latino",
+                                  ifelse(`Native American` >= 50.0 , "Native American",
+                                    ifelse(`Asian/Pacific Islander` >= 50.0 , "Asian/Pacific Islander", "No Majority")))))) 
+
+
+View(city_race)
+
+city_race <- city_race %>% 
+    rename(raceethnicity = variable, city_percent_pop = value) %>% 
+    mutate(city_percent_pop = city_percent_pop/100) %>% 
+    mutate(Majority = replace_na(Majority,"Other")) %>% 
+    
+  
 #SAVING EVERYTHING FOR EXPORT
+saveRDS(city_race,"city_race.rds")
 saveRDS(race_stats,"race_stats.rds")
 saveRDS(police_final,"police_final.rds")
 saveRDS(state_race,"state_race.rds")
