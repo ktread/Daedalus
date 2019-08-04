@@ -65,7 +65,6 @@ state_race <- state_race %>%
 
 
 state_race$state_race = as.character(state_race$state_race)
-view(state_race)
 
 
 
@@ -115,11 +114,39 @@ city_race <- melt(city_race, id.vars = c("City","State","City_Majority"), measur
 city_race <- city_race %>% 
   rename(city_race = variable, percent_city_pop = value)
 
+
+
+## GEOCODING CITY CENTERS - SHOULD ONLY USE ONCE - COST TO FOR API CALLS
+
+#city_geocodes <- police %>% 
+#  select(City, State, address) %>% 
+#  mutate_geocode(address)
+
+#AGGRREGATING TO GET UNIQUE VALUES TO REJOIN ON POLICE
+city_geocodes <- readRDS("city_geocodes")
+city_geo <- city_geocodes %>% 
+  select(City,State,lon,lat) %>% 
+  group_by(City,State,lon,lat) %>% 
+  distinct()
+ 
+
+police <- left_join(police,city_geo, by= c("City", 
+                                                "State"))
+
+police$latt = signif(police$lat,4)
+police$long = signif(police$lon,4)
+police$LatLon = paste(police$latt,police$long,sep=":")
+police$num = 1
+
+
 #SAVING EVERYTHING FOR EXPORT
 saveRDS(police,"police_final.rds")
 saveRDS(state_race,"state_race.rds")
 saveRDS(us_race,"us_race.rds")
 saveRDS(city_race,"city_stats.rds")
+saveRDS(city_geocodes,"city_geocodes")
+
+rm(list=ls())
 
 
 
