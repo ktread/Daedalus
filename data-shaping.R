@@ -1,18 +1,23 @@
 library(tidyverse)
 library(reshape2)
 
-# POLICE AND STATE DATA FRAME
+# IMPORTING DATA 
 police <- read.csv("police.csv",stringsAsFactors = FALSE)
-state_detail <- read.csv("state_detail.csv",stringsAsFactors = FALSE)
+state_geo <- read.csv("state_detail.csv",stringsAsFactors = FALSE)
+state_race <- read.csv("state_race.csv",stringsAsFactors = FALSE)
+city_race <- read.csv("city_race_clean.csv",stringsAsFactors = FALSE)
 
-View(police)
 
-police <- left_join(police,state_detail, by = c("state" = "State.Code"))
+#JOINING GEO DATA 
+state_geo <- state_geo %>% 
+  rename(state_name = State)
+police <- left_join(police,state_geo, by = c("state" = "State.Code"))
 
 
 
 #CONVERTING TYPES
 police$age <- as.numeric(police$age)
+
 
 ##PREPROCESSING POLICE DATA 
 
@@ -20,7 +25,7 @@ police <- police %>%
   mutate(juvenile = case_when(age<18 ~ "Juvenile",
                                age>=18~"Adult")) %>% 
   mutate(date = as.Date(date,"%Y-%m-%d")) %>% 
-  mutate(armed = ifelse(armed =="No", "Unarmed",armed)) %>%
+  mutate(armed = ifelse(armed =="", "Unknown",armed)) %>%
   mutate(manner_of_death = str_to_title(manner_of_death),
          armed = str_to_title(armed),
          flee = str_to_title(flee),
@@ -33,47 +38,57 @@ police <- police %>%
                                                                ifelse(race == "N", "Native American",
                                                                       ifelse(race == "H", "Hispanic/Latino",
                                                                              "Unknown"))))))) %>% 
-  mutate(year = substring(date,1,4))
+  mutate(year = substring(date,1,4)) %>% 
+  rename(victim_race = race)
 
 
+names(police) <- str_to_title(names(police))
+# CLEANING STATE POPULATION DATA
+state_race <- state_race %>%  
+          rename("Hispanic/Latino" = Hispanic.Latino, 
+                  "Asian/Pacific Islander" = Asian.Pacific.Islander, 
+                  "Native American" = Native.American) %>% 
+          mutate(percent_state_us_pop = as.numeric(percent_state_us_pop)) %>% 
+          mutate(State_Majority = ifelse(White >= .500 , "White", 
+                           ifelse(Black >= .500 , "Black",
+                                  ifelse(`Hispanic/Latino` >= .500 , "Hispanic/Latino",
+                                         ifelse(`Native American` >= .500 , "Native American",
+                                                ifelse(`Asian/Pacific Islander` >= .500 , "Asian/Pacific Islander", "No Majority")))))) 
 
-# STATE POPULTION DATA 
-state_race <- read.csv("race_per_state.csv",stringsAsFactors = FALSE)
-state_race <- state_race %>%  rename("Hispanic/Latino" = Hispanic.Latino, "Asian/Pacific Islander" = Asian.Pacific.Islander, "Native American" = Native.American)
-state_race <- melt(state_race, id.vars = "State", measure.vars = c("Hispanic/Latino", "White","Black", "Asian/Pacific Islander", "Native American"))
-view(state_race)
+
+state_race <- melt(state_race, id.vars = c("State","State_Majority","state_pop_raw",	"percent_state_us_pop"), measure.vars = c("Hispanic/Latino", "White","Black", "Asian/Pacific Islander", "Native American"))
+
 
 state_race <- state_race %>% 
   arrange(State, variable) %>% 
-  rename(raceethnicity = variable, percent_pop = value, state= State)
+  rename(state_race = variable, percent_state_pop = value, state= State)
 
 
-state_race$raceethnicity = as.character(state_race$raceethnicity)
+state_race$state_race = as.character(state_race$state_race)
+view(state_race)
 
 
 
-# US POPULATION DATA 
-raceethnicity = c("White",
+
+# CLEANING NATIONAL POPULATION DATA
+us_race = c("White",
          "Native American",
          "Hispanic/Latino",
          "Black",
          "Asian/Pacific Islander")
 
-percent_pop = c(.7650,
+us_percent_pop = c(.7650,
                 .0130,
                 .1830,
                 .1340,
                 .0610)
 
-race_stats = data.frame(raceethnicity,percent_pop)
+us_race = data.frame(us_race,us_percent_pop)
 
 
 
-#CITY RACE DATA 
 
-
-city_race <- read.csv("city_race_clean.csv",stringsAsFactors = FALSE)
-
+# CLEANING CITY POPULATION DATA
 city_race <- city_race %>%  
   rename("Hispanic/Latino" = Hispanic, 
          "Asian/Pacific Islander" = Asian.Pacific.Islander,
@@ -83,26 +98,28 @@ city_race <- city_race %>%
          `Hispanic/Latino` = as.numeric(`Hispanic/Latino`),
          `Native American` = as.numeric(`Native American`),
          `Asian/Pacific Islander` = as.numeric(`Asian/Pacific Islander`)) %>% 
-  mutate(Majority = ifelse(White >= 50.0 , "White", 
-                              ifelse(Black >= 50.0 , "Black",
-                                ifelse(`Hispanic/Latino` >= 50.0 , "Hispanic/Latino",
-                                  ifelse(`Native American` >= 50.0 , "Native American",
-                                    ifelse(`Asian/Pacific Islander` >= 50.0 , "Asian/Pacific Islander", "No Majority")))))) 
+  mutate(White = White/100,
+         Black = Black/100,
+         `Hispanic/Latino` = `Hispanic/Latino`/100,
+         `Native American` = `Native American`/100,
+         `Asian/Pacific Islander` = `Asian/Pacific Islander`/100) %>% 
+  mutate(City_Majority = ifelse(White >= .500 , "White", 
+                              ifelse(Black >= .500 , "Black",
+                                ifelse(`Hispanic/Latino` >= .500 , "Hispanic/Latino",
+                                  ifelse(`Native American` >= .500 , "Native American",
+                                    ifelse(`Asian/Pacific Islander` >= .500 , "Asian/Pacific Islander", "No Majority")))))) 
 
 
-View(city_race)
+city_race <- melt(city_race, id.vars = c("City","State","City_Majority"), measure.vars = c("Hispanic/Latino", "White","Black", "Asian/Pacific Islander", "Native American"))
 
 city_race <- city_race %>% 
-    rename(raceethnicity = variable, city_percent_pop = value) %>% 
-    mutate(city_percent_pop = city_percent_pop/100) %>% 
-    mutate(Majority = replace_na(Majority,"Other")) %>% 
-    
-  
+  rename(city_race = variable, percent_city_pop = value)
+
 #SAVING EVERYTHING FOR EXPORT
-saveRDS(city_race,"city_race.rds")
-saveRDS(race_stats,"race_stats.rds")
-saveRDS(police_final,"police_final.rds")
+saveRDS(police,"police_final.rds")
 saveRDS(state_race,"state_race.rds")
+saveRDS(us_race,"us_race.rds")
+saveRDS(city_race,"city_stats.rds")
 
 
 
