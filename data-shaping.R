@@ -117,10 +117,13 @@ city_race <- city_race %>%
 
 
 ## GEOCODING CITY CENTERS - SHOULD ONLY USE ONCE - COST TO FOR API CALLS
+police$address = paste(police$City,police$State,sep = ",")
 
-#city_geocodes <- police %>% 
-#  select(City, State, address) %>% 
-#  mutate_geocode(address)
+
+city_geocodes <- police %>% 
+  select(City, State, address) %>% 
+  distinct() %>% 
+  mutate_geocode(address)
 
 #AGGRREGATING TO GET UNIQUE VALUES TO REJOIN ON POLICE
 city_geocodes <- readRDS("city_geocodes")
@@ -138,7 +141,7 @@ police$long = signif(police$lon,4)
 police$LatLon = paste(police$latt,police$long,sep=":")
 police$num = 1
 
-
+         
 #SAVING EVERYTHING FOR EXPORT
 saveRDS(police,"police_final.rds")
 saveRDS(state_race,"state_race.rds")

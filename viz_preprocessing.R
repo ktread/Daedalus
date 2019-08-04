@@ -4,72 +4,32 @@ library(googleVis)
 library(ggmap)
 library(leaflet)
 
-police <- readRDS("police_final.rds")
-state_race <- readRDS("state_race.rds")
-us_race <- readRDS("us_race.rds")
-city_race <- readRDS("city_stats.rds")
- 
-
-#ADDDING TOTALS BECAUSE MATH
-total <- police %>% 
-  summarise(total = n())
-
-total_killed = total$total
 
 
-
-#NATIONAL RACE BAR CHART
-national_race_agg <- police %>% 
-  select(Victim_race) %>% 
-  group_by(Victim_race) %>% 
-  summarise(killings = n(), percent_race_killings = n()/total_killed) %>% 
-  arrange(desc(killings))
-
-
-national_race_agg <- left_join(national_race_agg, us_race, by = c('Victim_race' = 'us_race'))
-
-national_race_agg <- national_race_data %>% 
-  mutate(relative_percent = signif((((percent_race_killings/us_percent_pop)-1)*100),2))
-
-
-
-
-
-
-
-
-
-
-
-# Leaflet maps
-pal <- colorFactor(
-  palette = "Set2",
-  domain = police$cause)
-
-
-
-## MARKER TEST WITH GOOGLE MAPS
-
-city <- police %>% 
-  group_by(City, State, Manner_of_death, latt, long) %>% 
+how_armed <- police %>% 
+  group_by(Armed) %>% 
   summarise(deaths = n()) %>% 
-  distinct()
+  arrange(desc(deaths)) %>% 
+  top_n(10, deaths)
 
-
-
-
-####---------------------------------------------------------------------------
-
-
-# DATE CHARTS
-
-date_gender_summary<- police %>% 
-  select(Year,Gender) %>% 
-  group_by(Year,Gender) %>% 
-  summarise(number_killed = n())
-
-
-date_gender_summary <- dcast(date_gender_summary, Year ~ Gender)
-
-
-
+p <- plot_ly(how_armed) %>%
+  add_bars(
+    x = ~Armed,
+    y = ~deaths,
+    marker = list(
+      color = "#fd0000",
+      opacity = .85
+    ),
+    name = 'Top 10 Weapons Held by Victims',
+    text = ~deaths,
+    textposition = "auto"
+  ) %>% 
+  layout(title = 'Top 10 Weapons Held by Victims',
+         xaxis = list(title = "Weapon"),
+         yaxis = list(title = "Number of Deaths"),
+         legend = list(x = 0, y = 1, bgcolor = 'rgba(255, 255, 255, 0)',
+                       bordercolor = 'rgba(255, 255, 255, 0)'),
+         barmode = 'group', 
+         bargap = 0.01
+  )
+p

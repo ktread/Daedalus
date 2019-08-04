@@ -8,25 +8,6 @@ library(leaflet.extras)
 
 
 
-#COMPLETE - LOCATION OF ALL DEATHS - CITY LEVEL
-
- 
-  city_rates <- leaflet(city) %>%
-    addTiles() %>%  # Add default OpenStreetMap map tiles
-    setView(-96, 37.8, 4) %>%
-    addCircleMarkers(lat= ~latt,lng= ~long,
-                     color = "#fd0000",
-                     stroke = FALSE,
-                     fillOpacity = 0.5,
-                     radius = ~deaths/2,
-                     popup = ~label,
-                     popupOptions = labelOptions(noHide = T,
-                                                 textsize = "15px"))  %>%
-    addProviderTiles(providers$CartoDB.Positron)
-  
-  city_rates  # Print the map
-  
-
 #NOT COMPLETE DATE CHARTS
 
 males <- plot_ly(date_gender_summary) %>%
@@ -49,7 +30,9 @@ males <- plot_ly(date_gender_summary) %>%
          barmode = 'group', 
          bargap = 0.09
         )
-         
+
+
+males         
 
 female<-  plot_ly(date_gender_summary) %>%
   add_bars(

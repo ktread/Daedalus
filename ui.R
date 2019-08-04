@@ -1,18 +1,23 @@
 library(shinydashboard)
 
 shinyUI(dashboardPage(
-  dashboardHeader(title = "My Dashboard"),
-  dashboardSidebar(sidebarUserPanel("Kate"),
+  dashboardHeader(title = "Police Killings"),
+  dashboardSidebar(
                    sidebarMenu(
-                     menuItem("Explore by Race", tabName = "race", icon = icon("balance-scale")),
                      menuItem("National Data", tabName = "national", icon = icon("flag")),
-                     menuItem("Data", tabName = "data", icon = icon("table"))
+                     menuItem("Explore by Race", tabName = "race", icon = icon("balance-scale")),
+                     menuItem("Explore by Details", tabName = "detail", icon = icon("layer-group"))
   )),
   dashboardBody(
     tabItems(
       tabItem(tabName = "race",
      selectizeInput("selected","Select Victim Race to Explore", choice),
           fluidRow(
+              box(
+                width = 12,
+                leafletOutput("city_deaths_race"),
+                title = "Number of Deaths"
+                ),
                 box(
                   htmlOutput("map"),
                   title = "Relative Killings"),
@@ -22,17 +27,42 @@ shinyUI(dashboardPage(
       tabItem(tabName = "national",
               fluidRow(
                 box(
+                  width = 12,
+                  leafletOutput("city_deaths"),
+                  title = "Number of Deaths"
+                )),
+              fluidRow(
+                box(
                   htmlOutput("national_map"),
                   title = "Relative Chance of Being Killed (By State)"
                 ),
                 box(
                   plotlyOutput("national_risk"),
                   title = "Relative Chance of Being Killed (By Race)"
-                ))),
-      tabItem(tabName = "data",
+                )),
               fluidRow(
                 box(
-                  DT::dataTableOutput("table")
+                  plotlyOutput("male_nation"),
+                  title = "Number of Men Killed"
+                ),
+                box(
+                  plotlyOutput("female_nation"),
+                  title = "Number of Women Killed"
+                )),
+              fluidRow(
+                box(
+                  width = 12,
+                  htmlOutput("cal"),
+                  title = "Number of Deaths by Day"
+                ))
+              ),
+      tabItem(tabName = "detail",
+              fluidRow(
+                box(
+                  plotlyOutput("how_armed"),
+                  title = "Victim Armed Status"
                   )))
     ))))
-                
+          
+
+    
