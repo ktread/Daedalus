@@ -5,50 +5,8 @@ library(ggmap)
 library(leaflet)
 library(leaflet.extras)
 
-#COMPLETED - AGE HISTOGRAM
-age_hist <- police %>% 
-  filter(Age >0 ) %>% 
-  plot_ly(x=police$Age, 
-          type = "histogram",
-          #mode = "bar
-          text= "24",
-          name = "",
-          hovertemplate = paste(
-            "Age Group: %{x}<br>",
-            "Number killed: %{y}<br>"
-          )
-  ) %>%
-  layout(yaxis=list(type='linear'),legend = ~Age) 
-
-age_hist
 
 
-#COMPLETED - RELATIVE RACE DANGER BY STATE - OPTIONAL 
-relative_by_race <- gvisGeoChart(state_race_black, locationvar='State.x',
-                                   colorvar= "Relative-Percent",
-                                   hovervar = "State_name",
-                                   options=list(region="US", 
-                                                displayMode="regions", 
-                                                resolution="provinces",
-                                                color = 'red',
-                                                width=600, 
-                                                height=400,
-                                                colorAxis = "{minValue: -1,maxValue: 5,  colors: ['#00FF00','#FF0000']}"))
- plot(relative_by_race)
-  
-
- 
-
-#COMPLETED - RELATIVE BY STATE - ALL STATES TO EACH OTHER  
-relative_per_by_state <- gvisGeoChart(state_relative_population_deaths, locationvar='State', 
-                            colorvar='relative_percent',
-                            options=list(region="US", 
-                                         displayMode="regions", 
-                                         resolution="provinces",
-                                         colorAxis = "{colors: ['#00FF00', '#FF0000']}"))
-  
- plot(relative_per_by_state)
-  
 
 #COMPLETE - LOCATION OF ALL DEATHS - CITY LEVEL
 
