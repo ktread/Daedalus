@@ -59,10 +59,11 @@ shinyUI(dashboardPage(
       tabItem(tabName = "detail",
               fluidRow(
                 box(
-                  selectizeInput("views","Select Details to Explore", views),
+                  varSelectInput("variable", "Variable:", police_detail),
+                  #selectizeInput("views","Select Details to Explore", views),
                   width = 12,
                   plotlyOutput("view_by"),
-                  title = "Victim Armed Status"
+                  title = paste("Number of Deaths")
                   )))
     ))))
           

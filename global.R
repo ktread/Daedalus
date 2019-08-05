@@ -19,21 +19,28 @@ total_killed = total$total
 choice <- ( c("Black","Asian/Pacific Islander"
           ,"White"                 
             ,"Hispanic/Latino"   
-            ,"Unknown"               
-            ,"Native American"
-            ,"All Races" ))
+            ,"Native American"))
 
 views <- (c("Armed"               
             ,"City"                
             ,"Flee"                
             ,"Body_camera"           
             ,"Juvenile"              
-            ,"latt"                  
             ,"Signs_of_mental_illness" 
             ,"State_name"              
             ,"Threat_level"           
             ,"Region" ))
   
+police_detail <- police %>% 
+  select("Armed"               
+            ,"City"                
+            ,"Flee"                
+            ,"Body_camera"           
+            ,"Juvenile"              
+            ,"Signs_of_mental_illness" 
+            ,"State_name"              
+            ,"Threat_level"           
+            ,"Region" )
 
 
 killings_by_state <- police  %>% 
@@ -118,6 +125,11 @@ how_armed <- police %>%
   arrange(desc(deaths)) %>% 
   top_n(10, deaths)
 
+
+by_date <- police %>% 
+  group_by(Date) %>% 
+  summarise(deaths = n()) %>% 
+  unique()
 
 
 

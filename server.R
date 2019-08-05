@@ -180,32 +180,31 @@ output$cal <- renderGvis({
 })
 
 
-
 output$view_by <- renderPlotly({ 
-  police$x = police[,input$views]
   police %>% 
-    group_by(x) %>% 
+    group_by(!!input$variable) %>% 
     summarise(deaths = n()) %>% 
     arrange(desc(deaths)) %>% 
     top_n(10, deaths) %>%
+    rename(x = 1) %>% 
     plot_ly() %>%
-      add_bars(
-        x = ~x,
-        y = ~deaths,
-          marker = list(
-          color = "#fd0000",
-          opacity = .85
-    ),
-    text = ~deaths,
-    textposition = "auto"
-  ) %>% 
-  layout(xaxis = list(title = x),
-         yaxis = list(title = "Number of Deaths"),
-         legend = list(x = 0, y = 1, bgcolor = 'rgba(255, 255, 255, 0)',
-                       bordercolor = 'rgba(255, 255, 255, 0)'),
-         barmode = 'group', 
-         bargap = 0.01
-  )
+    add_bars(
+      x = ~x,
+      y = ~deaths,
+      marker = list(
+        color = "#fd0000",
+        opacity = .85
+      ),
+      text = ~deaths,
+      textposition = "auto"
+    ) %>% 
+    layout(xaxis = list(title = ""),#x),
+           yaxis = list(title = "Number of Deaths"),
+           legend = list(x = 0, y = 1, bgcolor = 'rgba(255, 255, 255, 0)',
+                         bordercolor = 'rgba(255, 255, 255, 0)'),
+           barmode = 'group', 
+           bargap = 0.01
+    )
   
 })
 
