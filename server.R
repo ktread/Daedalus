@@ -14,7 +14,7 @@ shinyServer(function(input, output){
                               displayMode="regions", 
                               resolution="provinces",
                               color = 'red',
-                              colorAxis = "{minValue: -1,maxValue: 5,  colors: ['#00FF00','#FF0000']}"))
+                              colorAxis = "{minValue: -100,maxValue: 100,  colors: ['#00FF00','#FF0000']}"))
     })
   output$table <- DT::renderDataTable({
     datatable(police, rownames=FALSE) %>% 

@@ -64,9 +64,9 @@ killings_by_state_summary <- left_join(killing_by_state_percent,state_race,by=
                                            "Victim_race" = "state_race"))
 
 killings_by_state_summary <- killings_by_state_summary %>% 
-  mutate("Relative-Percent" = (percent_state_killings_by_race/percent_state_pop)-1) %>% 
+  mutate("Relative-Percent" = ((percent_state_killings_by_race/percent_state_pop)-1)*100) %>% 
   filter(Victim_race != 'Unknown') %>% 
-  select(State_name, State.x, Victim_race, "Relative-Percent", state_total_killings)
+  select(State_name, State.x, Victim_race, "Relative-Percent", state_total_killings,percent_state_killings_by_race,percent_state_pop)
 
 state_race_input <- killings_by_state_summary
 
