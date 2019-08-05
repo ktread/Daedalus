@@ -16,7 +16,7 @@ shinyUI(dashboardPage(
               box(
                 width = 12,
                 leafletOutput("city_deaths_race"),
-                title = HTML("Number of Deaths by Race<br>","selected")
+                title = HTML("Number of Deaths by Race")
                 ),
                 box(
                   htmlOutput("map"),
