@@ -32,29 +32,5 @@ males <- plot_ly(date_gender_summary) %>%
         )
 
 
-males         
-
-female<-  plot_ly(date_gender_summary) %>%
-  add_bars(
-    x = ~Year,
-    y = ~Female,
-    marker = list(
-      color = "#fd0000",
-      opacity = .5
-    ),
-    text = ~Female,
-    textposition = "auto"
-  ) %>% 
-  layout(title = 'Women Killed in the US (2015-2019)',
-         xaxis = list(title = "Year"),
-         yaxis = list(title = "Number of Deaths"),
-         legend = list(x = 0, y = 1, bgcolor = 'rgba(255, 255, 255, 0)',
-                       bordercolor = 'rgba(255, 255, 255, 0)'),
-         barmode = 'group', 
-         bargap = 0.09
-  ) 
-  
-  
-
 
   

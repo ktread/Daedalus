@@ -34,11 +34,11 @@ shinyUI(dashboardPage(
               fluidRow(
                 box(
                   htmlOutput("national_map"),
-                  title = "Relative Chance of Being Killed (By State)"
+                  title = "Relative Likelihood of Being Killed (By State)"
                 ),
                 box(
                   plotlyOutput("national_risk"),
-                  title = "Relative Chance of Being Killed (By Race)"
+                  title = "Relative Likelihood of Being Killed (By Race)"
                 )),
               fluidRow(
                 box(
@@ -59,7 +59,9 @@ shinyUI(dashboardPage(
       tabItem(tabName = "detail",
               fluidRow(
                 box(
-                  plotlyOutput("how_armed"),
+                  selectizeInput("views","Select Details to Explore", views),
+                  width = 12,
+                  plotlyOutput("view_by"),
                   title = "Victim Armed Status"
                   )))
     ))))

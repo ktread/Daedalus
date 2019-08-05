@@ -23,6 +23,19 @@ choice <- ( c("Black","Asian/Pacific Islander"
             ,"Native American"
             ,"All Races" ))
 
+views <- (c("Armed"               
+            ,"City"                
+            ,"Flee"                
+            ,"Body_camera"           
+            ,"Juvenile"              
+            ,"latt"                  
+            ,"Signs_of_mental_illness" 
+            ,"State_name"              
+            ,"Threat_level"           
+            ,"Region" ))
+  
+
+
 killings_by_state <- police  %>% 
   group_by(State_name,State) %>% 
   summarise(killed_in_state = n()) %>% 
@@ -65,7 +78,7 @@ state_relative_population_deaths <-  state_relative_population_deaths %>%
   select(State,state_percent, percent_state_us_pop, state_deaths)
 
 state_relative_population_deaths <- state_relative_population_deaths %>% 
-  mutate(relative_percent = ((state_percent/percent_state_us_pop)-1))
+  mutate(relative_percent = ((state_percent/percent_state_us_pop)-1)*100)
 
 
 national_race_agg <- police %>% 
@@ -98,4 +111,15 @@ date_gender_summary<- police %>%
 
 
 date_gender_summary <- dcast(date_gender_summary, Year ~ Gender)
+
+how_armed <- police %>% 
+  group_by(Armed) %>% 
+  summarise(deaths = n()) %>% 
+  arrange(desc(deaths)) %>% 
+  top_n(10, deaths)
+
+
+
+
+
 
